@@ -4651,7 +4651,13 @@ class SArray(object):
         Returns a shallow copy of the sarray.
         """
         return SArray(_proxy=self.__proxy__)
-
+    
+    def copy(self):
+        """
+        Returns a shallow copy of the sframe.
+        """
+        return self.__copy__()
+    
     def __deepcopy__(self, memo):
         """
         Returns a deep copy of the sarray. As the data in an SArray is
@@ -4677,3 +4683,38 @@ class SArray(object):
         """
 
         return abs(self)
+
+    def remove_row(self, key, inplace=False):
+        if inplace:
+            ret = self
+        else:
+            ret = self.copy()
+
+        with cython_context():
+            ret.__proxy__.remove_row(key)
+
+        ret._cache = None
+        return ret
+
+    def remove_rows(self, key, inplace=False):
+        pass
+
+    def __delitem__(self, key):
+        sa_len = len(self)
+
+        if isinstance(key, (int, numbers.Integral)):
+            if key < -sa_len or key >= sa_len:
+                raise IndexError(
+                    'SArray index = {} out of range for SArray of len = {}'.format(
+                    key, len(self))
+                )
+
+            if key < 0: key += sa_len
+
+            self.remove_row(key, inplace=True)
+        
+        elif isinstance(key, slice):
+            raise NotImplementedError(
+                'Deleting rows using slices not implemented yet.'
+            )
+

@@ -3941,10 +3941,17 @@ class SFrame(object):
 
     def __delitem__(self, key):
         """
-        Wrapper around remove_column.
+        delete functionality for an SFrame
+        In case key is a `slice` OR `int` the respective row/s will be dropped
+        from all the columns
+        
+        in case of key being a `str` that particular column will be dropped
         """
-        self.remove_column(key, inplace=True)
-
+        if isinstance(key, slice) or isinstance(key, int):
+            self.remove_rows(key, inplace=True)
+        elif isinstance(key, str):
+            self.remove_column(key, inplace=True)
+        
     def materialize(self):
         """
         For an SFrame that is lazily evaluated, force the persistence of the
